@@ -2,10 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, Stylesheet, TouchableOpacity, TextInput } from 'react-native';
 import { toProperCase } from '../helpers/globalHooks';
-import Styles from '../Styles';
+import Styles, { colors } from '../Styles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const ignore = ['id', 'events', 'services'];
-const autoCapitalize = ['vin', 'licencePlate'];
+const ignore = ['id', 'services', 'events'];
+const autoCapitalize = ['vin', 'licensePlate'];
 const keyboardType = (key) => {
     switch (key) {
         case 'year':
@@ -16,6 +17,8 @@ const keyboardType = (key) => {
 }
 
 const AddEditVehicle = (props) => {
+
+    const insets = useSafeAreaInsets();
 
     const [newVehicle, setNewVehicle] = useState(true);
     const [vehicle, setVehicle] = useState({
@@ -29,8 +32,7 @@ const AddEditVehicle = (props) => {
         licensePlate: '',
         miles: '',
         kilometers: '',
-        events: [],
-        services: []
+        services: [],
     })
 
     useEffect(() => {
@@ -51,49 +53,63 @@ const AddEditVehicle = (props) => {
         return false
     }
 
+    const pageTitle = () => {
+        if (props.currentVehicle?.make != undefined) {
+            return "Edit Vehicle"
+        }
+        return "Add Vehicle"
+    }
+
     return (
-        <View style={Styles.container}>
+        <View style={[Styles.container, { justifyContent: 'space-between', paddingTop: insets.top, paddingBottom: insets.bottom }]}>
 
-            {Object.keys(vehicle).map((key, index) => {
-                if (ignore.includes(key)) return
-                return <TextInput
-                    style={[Styles.textInput, {
+            <Text style={Styles.h1}>{pageTitle()}1</Text>
 
-                    }]}
-                    key={index}
-                    keyboardType={keyboardType(key)}
-                    autoCapitalize={autoCapitalize.includes(key) ? 'characters' : 'none'}
-                    placeholder={toProperCase(key)}
-                    placeholderTextColor="#ccc"
-                    onChangeText={(text) => handleInput(key, text)}
-                    value={vehicle[key]}
-                >
-                </TextInput>
+            <View style={[{alignItems: 'center'}]}>
+                {Object.keys(vehicle).map((key, index) => {
+                    if (ignore.includes(key)) return
+                    return <TextInput
+                        style={[Styles.textInput, {
+
+                        }]}
+                        key={index}
+                        keyboardType={keyboardType(key)}
+                        autoCapitalize={autoCapitalize.includes(key) ? 'characters' : 'none'}
+                        placeholder={toProperCase(key)}
+                        placeholderTextColor="#ccc"
+                        onChangeText={(text) => handleInput(key, text)}
+                        value={vehicle[key]}
+                    >
+                    </TextInput>
 
 
-            })}
+                })}
+                {/* Delete */}
+                { props.currentVehicle?.make != undefined ?
+                <TouchableOpacity style={[Styles.buttonOval, { width: 300, backgroundColor: '#9999CC', marginTop: 20 }]}
+                    onPress={() => props.onDelete()}>
+                    <Text style={[Styles.h1, { textAlign: 'center', color: colors.barracudaGreenDarkGrey}]}>Delete_</Text>
+                </TouchableOpacity> : null }
+            </View>
 
-            <View style={[Styles.row, { width: '100%', justifyContent: 'space-evenly', padding: 10 }]}>
+
+
+            <View style={[Styles.row, { width: '100%', justifyContent: 'center', padding: 10 }]}>
                 {/* Cancel */}
-                <TouchableOpacity style={[Styles.buttonOval]}
+                <TouchableOpacity style={[Styles.buttonOval, Styles.buttonCancel]}
                     onPress={() => props.onClose()}>
-                    <Text style={{ textAlign: 'center' }}>Cancel</Text>
+                    <Text style={[Styles.h1, { textAlign: 'center', color: '#fff' }]}>Cancel_</Text>
                 </TouchableOpacity>
 
                 {/* Save */}
-                <TouchableOpacity
+                <TouchableOpacity style={[Styles.buttonOval, Styles.buttonSave]}
                     disabled={saveButtonStatus()}
-                    style={[Styles.buttonOval]}
                     onPress={() => props.onSave(vehicle, newVehicle)}>
-                    <Text style={{ textAlign: 'center' }}>Save</Text>
+                    <Text style={[Styles.h1, { textAlign: 'center', color: '#fff'}]}>Save_</Text>
                 </TouchableOpacity>
             </View>
 
-            {/* Delete */}
-            <TouchableOpacity style={[Styles.buttonOval, { width: 200 }]}
-                onPress={() => props.onDelete()}>
-                <Text style={{ textAlign: 'center' }}>Delete</Text>
-            </TouchableOpacity>
+
         </View>
     )
 }

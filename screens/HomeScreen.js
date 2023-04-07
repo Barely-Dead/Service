@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FlatList, Modal, TouchableOpacity, StyleSheet, View, Image, Text, ScrollView } from 'react-native';
 import { getData, getDataObject, storeDate, storeDataObject, removeItem } from '../helpers/database';
 import { dimensions, getLargestId } from '../helpers/globalHooks';
@@ -10,17 +10,39 @@ import AddEditService from './AddEditService';
 
 const HomeScreen = (props) => {
 
+    const [scrollViewOffset, setScrollViewOffset] = useState(0);
     const [vehicles, setVehicles] = useState([]);
     const [modalVisibleVehicle, setModalVisibleVehicle] = useState(false);
     const [modalVisibleService, setModalVisibleService] = useState(false);
     const [currentVehicle, setCurrentVehicle] = useState(0);
     const [disableInteractions, setDisableInteractions] = useState(false);
 
+    const DATA = [
+        {title: 'test1'},
+        {title: 'test2'}
+    ];
+
+
     useEffect(() => {
         loadVehicles();
         //removeItem('vehicles');
+        
     }, [])
 
+    useEffect(() => {
+        console.log("1", vehicles)
+        checkScrollViewContentOffset();
+    },[vehicles])
+
+    const checkScrollViewContentOffset = () => {
+        if (scrollViewOffset == vehicles.length) {
+            setDisableInteractions(true);
+            return
+        }
+        setDisableInteractions(false);
+    }    
+
+    {/*** Vehicles ***/}
     const loadVehicles = async () => {
         let vs = await getDataObject('vehicles');
         if (vs == null) {
@@ -30,7 +52,6 @@ const HomeScreen = (props) => {
         }
         setVehicles(vs);
     }
-
     const saveVehicle = async (v, newVehicle) => {
         let vs = [...vehicles]; // copy current array
         if (newVehicle) { // new vehicle
@@ -45,7 +66,6 @@ const HomeScreen = (props) => {
         storeDataObject('vehicles', vs) // save to db
         toggleVehicleModal(); // toggle modal
     }
-
     const deleteVehicle = () => {
         let vs = [...vehicles];
         try {
@@ -59,19 +79,22 @@ const HomeScreen = (props) => {
         storeDataObject('vehicles', vs);
         toggleVehicleModal();
     }
-
+    
+    {/*** Service ***/}
     const toggleVehicleModal = () => {
         setModalVisibleVehicle(!modalVisibleVehicle);
     }
-
-    const saveService = async (service) => {
-        console.log(service);
-        // todo: save
-        toggleServiceModal();
-    }
-
     const toggleServiceModal = () => {
         setModalVisibleService(!modalVisibleService);
+    }
+    const _saveService = async (service) => {
+        let s = {...service}
+        let vs = [...vehicles];
+        vs[currentVehicle].services.push(s);
+        console.log("services:", vs[currentVehicle].services);
+        setVehicles(vs);
+        storeDataObject('vehicles', vs);
+        toggleServiceModal();
     }
 
     const ListHeaderComponent = (item) => (
@@ -89,24 +112,27 @@ const HomeScreen = (props) => {
         </View>
     )
 
-    const RenderItem = (item) => (
-        <View style={{ flex: 1, width: '100%' }}>
-            <Text>test</Text>
+    const Item = ({item}) => (
+        <View>
+          <Text>{item.details}</Text>
+          {item.lineItems.map((item, index) => (
+            <Text key={'line-item' + index} >{item.description} {item.num} {item.cost}</Text>
+          ))}
         </View>
-    )
+      );
 
     const scrollVehicleStart = () => {
         setDisableInteractions(true);
     }
 
     const scrollVehicleEnd = (offsetX) => {
+        setScrollViewOffset(offsetX);
         setCurrentVehicle(offsetX / dimensions.windowWidth);
         if (offsetX == vehicles.length) {
             setDisableInteractions(true);
             return
         }
         setDisableInteractions(false);
-
     }
 
 
@@ -124,9 +150,11 @@ const HomeScreen = (props) => {
                 visible={modalVisibleService}
                 animationType='slide'
             >
-                <AddEditService onClose={toggleServiceModal} onSave={saveService} currentVehicle={vehicles[currentVehicle]} />
+                <AddEditService onClose={toggleServiceModal} _onSave={_saveService} currentVehicle={vehicles[currentVehicle]} />
             </Modal>
+
             <View style={{ flex: 1, width: '100%' }}>
+
                 <ScrollView
                     style={[{ flex: 1, width: '100%' }]}
                     contentContainerStyle={[{}]}
@@ -138,19 +166,21 @@ const HomeScreen = (props) => {
                     {/* <View style={{width: dimensions.windowWidth}}><Text>test</Text></View>
                 <View style={{width: dimensions.windowWidth}}><Text>test2</Text></View> */}
 
-                    {vehicles.length > 0 ? vehicles.map((item, index) => {
+                    {vehicles.length > 0 ? vehicles.map((i, index) => {
+
                         return (
                             // <View key={index.toString()} 
                             // style={{flex: 1, width: '100%'}}>
                             <FlatList
-                                key={index.toString()}
+                                data={i.services}
+                                renderItem={({item}) => <Item item={item} />}
+                                keyExtractor={item => item.id}
+
+                                key={'services-' + index + '-' +i.id}
                                 style={[{}]}
                                 contentContainerStyle={[{ flex: 1, width: '100%' }]}
-                                Data={item.services}
-                                keyExtractor={(item) => item.id.toString()}
-                                ListHeaderComponent={ListHeaderComponent(item)}
+                                ListHeaderComponent={ListHeaderComponent(i)}
                                 StickyHeaderComponent={true}
-                                renderItem={RenderItem}
                                 ListEmptyComponent={ListEmptyComponent}
                             />
                             //</View>

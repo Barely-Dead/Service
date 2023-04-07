@@ -5,16 +5,10 @@ import Styles from '../Styles';
 
 const ServiceLineItem = (props) => {
 
-    const [lineItem, setLineItem] = useState({
-        description: '',
-        num: '',
-        cost: '',
-    })
 
-    const handleInput = (key, text) => {
-        let lineItemCopy = { ...lineItem };
-        lineItemCopy[key] = text;
-        setLineItem(lineItemCopy);
+
+    const handleInput = (key, value) => {
+        props._handleLineItem(props.index, key, value);
     }
 
     const style = (key) => {
@@ -30,11 +24,12 @@ const ServiceLineItem = (props) => {
 
     return (
         <View style={[Styles.row]}>
-            {Object.keys(lineItem).map((key, index) => (
+            {Object.keys(props.lineItem).map((key, index) => (
                 <TextInput
+                    key={index}
                     style={[Styles.textInput, style(key)]}
                     placeholder={toProperCase(key)}
-                    value={lineItem.key}
+                    value={props.lineItem[key]}
                     onChangeText={(text) => handleInput(key, text)}
                 ></TextInput>
             ))}
@@ -44,9 +39,3 @@ const ServiceLineItem = (props) => {
 }
 
 export default ServiceLineItem
-
-export const lineItem = {
-    description: '',
-    num: '',
-    cost: '',
-}

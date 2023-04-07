@@ -1,5 +1,13 @@
 import { StyleSheet } from "react-native";
 
+export const colors = {
+    barracudaGreenLight: '#9AE14B',
+    barracudaGreenMedium: '#85B83A',
+    barracudaGreenDark: '#5F8B12',
+    barracudaBlack: '#1B252F',
+    barracudaDarkGrey: '#31444E'
+}
+
 const Styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -37,13 +45,18 @@ const Styles = StyleSheet.create({
     },
     buttonOval: {
         margin: 3,
-        width: 100,
+        width: 147,
         padding: 10,
         paddingLeft: 15,
         paddingRight: 15,
-        borderRadius: 100,
-        backgroundColor: '#ccc'
-    }, 
+        borderRadius: 3,
+    },
+    buttonSave: {
+        backgroundColor: colors.barracudaGreenMedium
+    },
+    buttonCancel: {
+        backgroundColor: colors.barracudaDarkGrey
+    },
     buttonSelect: {
         width: 147,
         // margin: 3,
